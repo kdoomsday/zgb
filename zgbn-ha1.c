@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "helpers.h"
+
 
 # define L 	120
 # define N	L*L
@@ -11,16 +13,24 @@
 # define yx	0.1
 
 //int vecinoaleatorio(int I,int u[N],int d[N],int l[N],int r[N],int ur[N],int ul[N],int dr[N],int dl[N]);
-void reaccionCO( int Cell[N], int I,int FE[1],int O[1],int CO2[1],int u[N],int d[N],int l[N],int r[N]);
-void reaccionO2(int Cell[N], int I, int k,int FE[1],int CO[1],int CO2[1],int u[N],int d[N],int l[N],int r[N]);
-void warm(double y,int Cell[N], int FE[1],int CO[1],int O[1], int CO2[1],int X[1],int u[N],int d[N],int l[N],int r[N],int ur[N],int ul[N],int dr[N],int dl[N]);
+void reaccionCO( int Cell[N], int I, int *FE,int *O,int u[N],int d[N],int l[N],int r[N]);
+void reaccionO2(int Cell[N], int I, int k,int *FE,int *CO,int *CO2,int u[N],int d[N],int l[N],int r[N]);
+void warm(double y,int Cell[N], int *FE,int *CO,int *O, int *CO2,int *X,int u[N],int d[N],int l[N],int r[N],int ur[N],int ul[N],int dr[N],int dl[N]);
 int rdtsc()
 {
-asm volatile ("rdtsc");
+	asm volatile ("rdtsc");
 }
 
 main(){
-int Cell[N],i,j,k,k1,k2,p,I,J,x,v,sem,u[N],d[N],l[N],r[N],ur[N],ul[N],dr[N],dl[N],bd,br,bl,vec,CO2[1],PMC,FE[1],X[1],Otot,COtot,CO[1],O[1];
+int Cell[N],i,j,k,k1,k2,p,I,J,x,v,sem,u[N],d[N],l[N],r[N],ur[N],ul[N],dr[N],dl[N],bd,br,bl,vec,
+	CO2[1],	// Numero de produccion de CO2
+	PMC,
+	FE[1],
+	X[1],	// Numero de impurezas
+	Otot,
+	COtot,
+	CO[1],
+	O[1];
 double CO2p,Oc,COc,Xc,suma,produc,q,y,yoc,yo,kco,kx,sO,s2O,sCO,s2CO,sCO2,s2CO2,s2X,sigma[4],resta,invN,invNP,inv;
 char sal[99];
 
@@ -41,27 +51,27 @@ inv=(double)(1/(inv));
 //___________________creamos la matriz de vecinos_____________
 
 	
-for(i=0;i<(L-1);++i){
+for(i=0;i<(L-1);++i) {
 	
-	for (j=((i+1)*L+1);j<((i+2)*L-1);++j){
+	for (j=((i+1)*L+1);j<((i+2)*L-1);++j) {
 	
-//___________________Vecinos primarios________________________
-	
-	u[j]=j-L;
-	d[j]=j+L;
-	l[j]=j-1;
-	r[j]=j+1;
-//___________________Vecinos secundarios___________________________________	
-	
-	ur[j]=u[j]+1;
-	ul[j]=u[j]-1;
-	dr[j]=d[j]+1;
-	dl[j]=d[j]-1;
+	//___________________Vecinos primarios________________________
+
+		u[j]=j-L;
+		d[j]=j+L;
+		l[j]=j-1;
+		r[j]=j+1;
+	//___________________Vecinos secundarios___________________________________
+
+		ur[j]=u[j]+1;
+		ul[j]=u[j]-1;
+		dr[j]=d[j]+1;
+		dl[j]=d[j]-1;
 
 
+	}
 }
 
-}
 i=1;
 for(i=1;i<L;++i){
 
@@ -167,10 +177,9 @@ for(i=1;i<L;++i){
 	
 	
 
-y=yx;
  //____________________________Probabilidad Yco_________________________
-
- 	for (y=yx;y<1;y+=0.01){
+	y=yx;
+ 	for (y=yx;y<1;y+=0.01) {
 
  	yo=1-y-yx;
  	yoc=yo+y;
@@ -226,7 +235,7 @@ y=yx;
 			if (q<=y) {
 										
 				Cell[I]=1; 
-				reaccionCO(Cell,I,FE,O,CO2,u,d,l,r);
+				reaccionCO(Cell,I,FE,O,u,d,l,r);
 				if (Cell[I]==1) {++CO[0]; --FE[0];}
 				else  if (Cell[I]==0) ++CO2[0];
 				
@@ -375,403 +384,252 @@ int z,v;
 
 //______________REACCION DEL CO
 
-void reaccionCO( int Cell[N], int I,int FE[1],int O[1],int CO2[1],int u[N],int d[N],int l[N],int r[N]){
+/* Si hay oxigeno cerca de la posicion, reacciona con una al azar. Si */
+void reaccionCO( int Cell[N], int I,int *FE,int *O,int u[N],int d[N],int l[N],int r[N]) {
 	int j;
-
-
-j=0; 
-
-	j=4*((double)rand()/RAND_MAX);
-	switch(j){
-	case 0:
+	j = 4 * ALEATORIO;
 	
-	if (Cell[u[I]]==-1){
+	switch(j) {
+	case 0:	// Empezar arriba
+		if (Cell[u[I]]==-1) {
+			Cell[I]=0;
+			Cell[u[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[d[I]]==-1) {
+			Cell[I]=0;
+			Cell[d[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[l[I]]==-1) {
+			Cell[I]=0;
+			Cell[l[I]]=0;
+			--*O;
+			++*FE;
+		}
 	
-	
-		Cell[I]=0; 
-		Cell[u[I]]=0;
-		--O[0];
-		++FE[0]; 
+		else if (Cell[r[I]]==-1) {
+			Cell[I]=0;
+			Cell[r[I]]=0;
+			--*O;
+			++*FE;
+		}
+
+		break;
 		
+	case 1:	// Empezar abajo
+		if (Cell[d[I]]==-1){
+			Cell[I]=0;
+			Cell[d[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[l[I]]==-1) {
+			Cell[I]=0;
+			Cell[l[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[r[I]]==-1) {
+			Cell[I]=0;
+			Cell[r[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[u[I]]==-1) {
+			Cell[I]=0;
+			Cell[u[I]]=0;
+			--*O;
+			++*FE;
 		}
 	
-	else { 
-	
-	if (Cell[d[I]]==-1){
-		
-		Cell[I]=0;
-		Cell[d[I]]=0;
-		--O[0];
-		++FE[0];
-		
-		}
-								
-	else{ 
-				
-	if (Cell[l[I]]==-1){	
-	
-		Cell[I]=0;
-		Cell[l[I]]=0;
-		--O[0];
-		++FE[0];
-			
-		}
-	
-	else { 
-	
-	if (Cell[r[I]]==-1){
-	
-		Cell[I]=0;
-		Cell[r[I]]=0;
-		--O[0];
-		++FE[0];
-			
-		}
-		}
-		}
-		}
-	break;
-	case 1:
-	if (Cell[d[I]]==-1){
-
-		Cell[I]=0;
-		Cell[d[I]]=0;
-		--O[0];
-		++FE[0];
-			
-		}
-
-	else { 
-	
-	if (Cell[l[I]]==-1){
-
-		Cell[I]=0;
-		Cell[l[I]]=0;
-		--O[0];
-		++FE[0];
-			
-		}
-							
-	else{ 
-				
-	if (Cell[r[I]]==-1){
-	
-		Cell[I]=0;
-		Cell[r[I]]=0;
-		--O[0];
-		++FE[0];
-
-		}
-	
-	else { 
-	
-	if (Cell[u[I]]==-1){
-	
-		Cell[I]=0;
-		Cell[u[I]]=0;
-		--O[0];
-		++FE[0];
-
-				
-		}
-		}
-		}
-		}
-	
-	break;
+		break;
 	
 	case 2:
-	
-	if (Cell[l[I]]==-1){
-	
-		Cell[I]=0;
-		Cell[l[I]]=0;
-		--O[0];
-		++FE[0];
-
+		if (Cell[l[I]]==-1) {
+			Cell[I]=0;
+			Cell[l[I]]=0;
+			--*O;
+			++*FE;
 		}
-	
-	else { 
-	
-	if (Cell[r[I]]==-1){
-	
-		Cell[I]=0;
-		Cell[r[I]]=0;
-		--O[0];
-		++FE[0];
-
+		else if (Cell[r[I]]==-1) {
+			Cell[I]=0;
+			Cell[r[I]]=0;
+			--*O;
+			++*FE;
 		}
-							
-	else{ 
-				
-	if (Cell[u[I]]==-1){
-	
-		Cell[I]=0;
-		Cell[u[I]]=0;
-		--O[0];
-		++FE[0];
-
+		else if (Cell[u[I]]==-1) {
+			Cell[I]=0;
+			Cell[u[I]]=0;
+			--*O;
+			++*FE;
 		}
-	
-	else { 
-	
-	if (Cell[d[I]]==-1){
-	
-		Cell[I]=0;
-		Cell[d[I]]=0;
-		--O[0];
-		++FE[0];
-			
-		}
-		}
-		}
+		else if (Cell[d[I]]==-1) {
+			Cell[I]=0;
+			Cell[d[I]]=0;
+			--*O;
+			++*FE;
 		}
 
-	break;
+		break;
 
 	case 3:
-	if (Cell[r[I]]==-1){
-				Cell[I]=0;
-				Cell[r[I]]=0;
-				--O[0];
-				++FE[0];
-
-				
-				
-			}
-			else { 
-	
-	if (Cell[u[I]]==-1){
-				Cell[I]=0;
-				Cell[u[I]]=0;
-				--O[0];
-				++FE[0];
-
-				}
-								
-				else{ 
-				
-	if (Cell[d[I]]==-1){
-				Cell[I]=0;
-				Cell[d[I]]=0;
-				--O[0];
-				++FE[0];
-
-				
-				}
-				else { 
-	
-	if (Cell[l[I]]==-1){
-				Cell[I]=0;
-				Cell[l[I]]=0;
-				--O[0];
-				++FE[0];
-
-				
-			}
-			}
-			}
-			}
-	break;
-	
+		if (Cell[r[I]]==-1) {
+			Cell[I]=0;
+			Cell[r[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[u[I]]==-1) {
+			Cell[I]=0;
+			Cell[u[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[d[I]]==-1) {
+			Cell[I]=0;
+			Cell[d[I]]=0;
+			--*O;
+			++*FE;
+		}
+		else if (Cell[l[I]]==-1) {
+			Cell[I]=0;
+			Cell[l[I]]=0;
+			--*O;
+			++*FE;
+		}
+		break;
 	}
 }
 
 //_____________________REACCION DEL O2
 
-void reaccionO2(int Cell[N],int I, int k,int FE[1],int CO[1],int CO2[1],int u[N],int d[N],int l[N],int r[N]){
-int j;
-
-
-j=0; 
-	j=4*((double)rand()/RAND_MAX);
+void reaccionO2(int Cell[N],int I, int k,int *FE,int *CO,int *CO2,int u[N],int d[N],int l[N],int r[N]) {
+	int j = 4 * ALEATORIO;
 			
-switch(j){
+	switch(j){
 	case 0:
-	if (Cell[u[k]]==1){
-				Cell[k]=0;
-				Cell[u[k]]=0;
-				--CO[0];
-				++FE[0];
+		if (Cell[u[k]]==1) {
+			Cell[k]=0;
+			Cell[u[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[d[k]]==1) {
+			Cell[k]=0;
+			Cell[d[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[l[k]]==1) {
+			Cell[k]=0;
+			Cell[l[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[r[k]]==1) {
+			Cell[k]=0;
+			Cell[r[k]]=0;
+			--*CO;
+			++*FE;
+		}
 
-				
-				}
-				else { 
-	
-	if (Cell[d[k]]==1){
-				Cell[k]=0;
-				Cell[d[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				
-				}
-								
-				else{ 
-				
-	if (Cell[l[k]]==1){
-				Cell[k]=0;
-				Cell[l[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				
-				}
-				else { 
-	
-	if (Cell[r[k]]==1){
-				Cell[k]=0;
-				Cell[r[k]]=0;
-				--CO[0];
-				++FE[0];
-
-			
-			}
-			}
-			}
-			}
-	break;
+		break;
+		
 	case 1:
-	if (Cell[d[k]]==1){
-				Cell[k]=0;
-				Cell[d[k]]=0;
-				--CO[0];
-				++FE[0];
+		if (Cell[d[k]]==1) {
+			Cell[k]=0;
+			Cell[d[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[l[k]]==1) {
+			Cell[k]=0;
+			Cell[l[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[r[k]]==1) {
+			Cell[k]=0;
+			Cell[r[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[u[k]]==1) {
+			Cell[k]=0;
+			Cell[u[k]]=0;
+			--*CO;
+			++*FE;
+		}
 
-				}
-				else { 
-	
-	if (Cell[l[k]]==1){
-				Cell[k]=0;
-				Cell[l[k]]=0;
-				--CO[0];
-				++FE[0];
-				
-				}
-							
-				else{ 
-				
-	if (Cell[r[k]]==1){
-				Cell[k]=0;
-				Cell[r[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				
-				}
-				else { 
-	
-	if (Cell[u[k]]==1){
-				Cell[k]=0;
-				Cell[u[k]]=0;
-				--CO[0];
-				++FE[0];
-
-			
-			}
-			}
-			}
-			}
-	break;
+		break;
+		
 	case 2:
-	if (Cell[l[k]]==1){
-				Cell[k]=0;
-				Cell[l[k]]=0;
-				--CO[0];
-				++FE[0];
+		if (Cell[l[k]]==1) {
+			Cell[k]=0;
+			Cell[l[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[r[k]]==1) {
+			Cell[k]=0;
+			Cell[r[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[u[k]]==1) {
+			Cell[k]=0;
+			Cell[u[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[d[k]]==1) {
+			Cell[k]=0;
+			Cell[d[k]]=0;
+			--*CO;
+			++*FE;
+		}
 
-				
-				}
-				else {
-	
-	if (Cell[r[k]]==1){
-				Cell[k]=0;
-				Cell[r[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				
-				}
-							
-				else{ 
-				
-	if (Cell[u[k]]==1){
-				Cell[k]=0;
-				Cell[u[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				
-				}
-				else { 
-	
-	if (Cell[d[k]]==1){
-				Cell[k]=0;
-				Cell[d[k]]=0;
-				--CO[0];
-				++FE[0];
-
-			
-			}
-			}
-			}
-			}
-	break;
+		break;
+		
 	case 3:
-	if (Cell[r[k]]==1){
-	
-		Cell[k]=0;
-				Cell[r[k]]=0;
-				--CO[0];
-				++FE[0];
+		if (Cell[r[k]]==1) {
+			Cell[k]=0;
+			Cell[r[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[u[k]]==1) {
+			Cell[k]=0;
+			Cell[u[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[d[k]]==1) {
+			Cell[k]=0;
+			Cell[d[k]]=0;
+			--*CO;
+			++*FE;
+		}
+		else if (Cell[l[k]]==1) {
+			Cell[k]=0;
+			Cell[l[k]]=0;
+			--*CO;
+			++*FE;
+		}
 
-				
-				
-			}
-			else {
-	
-	if (Cell[u[k]]==1){
-				Cell[k]=0;
-				Cell[u[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				}
-								
-				else{ 
-				
-	if (Cell[d[k]]==1){
-				Cell[k]=0;
-				Cell[d[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				
-				}
-				else { 
-	
-	if (Cell[l[k]]==1){
-	
-	
-				Cell[k]=0;
-				Cell[l[k]]=0;
-				--CO[0];
-				++FE[0];
-
-				
-			}
-			}
-			}
-			}
-	break;
-	
+		break;
 	}
-
 }
 
 //_______________CALENTAMIENTO
 
-void warm(double y, int Cell[N], int FE[1],int CO[1],int O[1],int CO2[1],int X[1],int u[N],int d[N],int l[N],int r[N],int ur[N],int ul[N],int dr[N],int dl[N]){
+// @param y Probabilidad de aceptar un CO
+void warm(double y, int Cell[N], int *FE,int *CO,int *O,int *CO2,int *X,
+			 int u[N],int d[N],int l[N],int r[N],int ur[N],int ul[N],int dr[N],int dl[N])
+{
 
 int i,p,J,I,k,k1,k2,x,v;
 double q,yoc,yo,invNp,invn,co2,oc,coc;
@@ -800,7 +658,7 @@ for(p=1;p<(Cal+1);++p){
 	//invNp=((double) (invn/(p)));	
 	J=0; 
 	for(J=0;J<N;++J){		
-	I=N*((double)rand()/RAND_MAX);
+	I=N*((double)rand()/RAND_MAX);	// Posicion aleatoria en la matriz
 
 if (Cell[I]==0) {
  //____________________________Desorpción________________________________
@@ -810,7 +668,7 @@ if (Cell[I]==0) {
 	
 						if (q<kco){ 
 		
-						CO[0]=CO[0]-1;
+						*CO=*CO-1;
 						Cell[I]=0;
 			}
 		}
@@ -820,7 +678,7 @@ if (Cell[I]==0) {
 	
 						if (q<kx){ 
 		
-						CO[0]=CO[0]-1;
+						*CO=*CO-1;
 						Cell[I]=0;
 			}
 		}
@@ -831,16 +689,16 @@ if (Cell[I]==0) {
 				
  //__________________________________ CO=1
 				
-			if (q<=y) {
+			if (q<=y) {	// y = Probabilidad de absorber CO
 										
-				Cell[I]=1; 
-				reaccionCO(Cell,I,FE,O,CO2,u,d,l,r);
-				if (Cell[I]==1) {++CO[0]; --FE[0];}
+				Cell[I]=1; // 1 = CO
+				reaccionCO(Cell,I,FE,O,u,d,l,r);
+				if (Cell[I]==1) {++*CO; --*FE;}
 				else if (Cell[I]==0) ++co2;
 				
 			}
  //__________________________________  O=-1			
-			else if (q<yoc) {
+			else if (q<yoc) {	// yoc = Prob absorber un oxigeno
 				
 				v=2*((double)rand()/RAND_MAX);
 				if (v==0) {
@@ -850,31 +708,29 @@ if (Cell[I]==0) {
 						
 						k=k1;
 						reaccionO2(Cell,I,k,FE,CO,CO2,u,d,l,r);
-						if (Cell[k]==-1) {++O[0]; --FE[0];}
+						if (Cell[k]==-1) {++*O; --*FE;}
 						//else if (Cell[k]==0) ++co2;
 							
 						k=k2;
 						reaccionO2(Cell,I,k,FE,CO,CO2,u,d,l,r);
-						if (Cell[k]==-1) {++O[0]; --FE[0];}
+						if (Cell[k]==-1) {++*O; --*FE;}
 						//else if (Cell[k]==0) ++co2;
 											
 					}
 				}
-									
-				if (v==1) {
-										
+				else {										
 					k2=u[I]; k1=d[I];
 					if ((Cell[u[I]]==0)&&(Cell[d[I]]==0)){
 						Cell[u[I]]=-1; Cell[d[I]]=-1;
 						
 						k=k1;
 						reaccionO2(Cell,I,k,FE,CO,CO2,u,d,l,r);
-						if (Cell[k]==-1) {++O[0]; --FE[0];}
+						if (Cell[k]==-1) {++*O; --*FE;}
 						//else if (Cell[k]==0) ++co2;
 									
 						k=k2;
 						reaccionO2(Cell,I,k,FE,CO,CO2,u,d,l,r);
-						if (Cell[k]==-1) {++O[0]; --FE[0];}
+						if (Cell[k]==-1) {++*O; --*FE;}
 						//else if (Cell[k]==0) ++co2;
 										
 					}
@@ -883,12 +739,12 @@ if (Cell[I]==0) {
 										
 			}
 			
-			else { Cell[I]=2; ++X[0]; --FE[0];
+			else { Cell[I]=2; ++*X; --*FE;
 			}
 		}
 	}
-/*	oc+=O[0];
-	coc+=CO[0];
+/*	oc+=*O;
+	coc+=*CO;
 	fprintf (fw,"%d  %.4lf  %.4lf  %lf  \n",p,co2*invNp,oc*invNp,coc*invNp);*/
 }
 /*		v=0;
