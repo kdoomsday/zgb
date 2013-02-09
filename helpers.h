@@ -14,7 +14,7 @@
 #define IMPUREZA 2
 
 
-# define L 	120
+# define L 	3
 # define N	L*L
 # define Cal	50000
 # define pasos	100000
@@ -22,8 +22,9 @@
 
 
 #define POS(i, j) (i + L*j)
-#define DECR(indice) ((indice+L-1)%L)
-#define INCR(indice) ((indice+1)%L)
+#define DECR(indice) (indice > 0? (indice-1) : (L-1))
+#define INCR(indice) (indice < L-1 ? (indice+1) : 0)
+
 
 // Matriz con las matrices de adyacencias.
 typedef struct {

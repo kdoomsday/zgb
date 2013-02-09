@@ -17,6 +17,7 @@ void revisarReaccionO2(MATRIZ m, int pos, int orden[], int len, int *CO, int *CO
 
 void warm(double y, MATRIZ m, int *FE,int *CO,int *O, int *CO2,int *X);
 
+// Crear una matriz y poblar los indices
 MATRIZ crearMatriz();
 
 
@@ -30,8 +31,8 @@ MATRIZ crearMatriz() {
   int i, j, ind;
   int il, ir, ju, jd; // left of i, right of i, up of j, down of j
   
-  for (i=0; i < L; i++) {
-    for (j=0; j < L; j++) {
+  for (j=0; j < L; j++) {
+    for (i=0; i < L; i++) {
       ind = POS(i, j);
       il = DECR(i);
       ir = INCR(i);
@@ -52,6 +53,7 @@ MATRIZ crearMatriz() {
   return m;
 }
 
+
 int main(int argc, char *argv[]) {
   MATRIZ m;
   int i,j,k,k1,k2,p,I,J,x,v,sem,bd,br,bl,vec,
@@ -65,9 +67,9 @@ int main(int argc, char *argv[]) {
     O;
   double CO2p,Oc,COc,Xc,suma,produc,q,y,yoc,yo,kco,kx,sO,s2O,sCO,s2CO,sCO2,s2CO2,s2X,sigma[4],resta,invN,invNP,inv;
   char sal[99];
-
-  srand(rdtsc());
   FILE *fp;
+
+	srand(rdtsc());
 
   sprintf(sal,"ZGBHa1%d %d %d %lf.dat",L,Cal,pasos,yx);
   fp = fopen(sal,"w");
@@ -224,6 +226,9 @@ int main(int argc, char *argv[]) {
 	
     fprintf(fp,"%.4lf  %.4lf  %.4lf  %lf  %lf  %lf  %lf  %lf  %lf  %lf\n",y,Oc,COc,produc,Xc,suma,sigma[0],sigma[1],sigma[2],sigma[3]);
 	}
+
+	fclose(fp);
+	return 0;
 }
 //---------------------------FUNCIONES
 
